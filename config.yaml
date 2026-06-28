@@ -1,0 +1,26 @@
+# Training config for train_ser.py
+# Run with: python train_ser.py
+
+features_file: features/RAVDESS_ravdess_features.pkl
+
+repeat_idx: 0
+val_id: 01M
+test_id: 01M
+num_epochs: 100
+early_stop: 8
+batch_size: 8
+lr: 0.00001
+seed: 111
+gpu: 1
+gpu_ids: [0]
+
+dataset_type: RAVDESS
+wavlm_path: microsoft/wavlm-large
+
+save_label: ravdess_run
+checkpoint_dir: checkpoints
+log_file: logs/ravdess_run.log
+resume: true
+
+oversampling: false
+pretrained: true

@@ -1,0 +1,11 @@
+numpy
+pandas
+scikit-learn
+imbalanced-learn
+pillow
+matplotlib
+tqdm
+
+# Install PyTorch separately with the CUDA/CPU command that matches your machine.
+# Example CUDA 12.1:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121

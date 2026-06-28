@@ -9,6 +9,7 @@ import time
 repeat_kfold = 1 # to  perform 10-fold for n-times with different seed
 localtime = time.localtime(time.time())
 str_time = f'{str(localtime.tm_year)}-{str(localtime.tm_mon)}-{str(localtime.tm_mday)}-{str(localtime.tm_hour)}-{str(localtime.tm_min)}'
+resume_label = '2026-6-27-13-0'
 
 #------------PARAMETERS---------------#
 
@@ -21,14 +22,12 @@ features_file = 'features/RAVDESS_ravdess_features.pkl'
 # val_id = ['03M', '09M', '10F', '11M', '12F', '13M', '14F', '15M', '16F']
 # test_id = ['03M', '09M', '10F', '11M', '12F', '13M', '14F', '15M', '16F']
 # RAVDESS
-val_id = ['01M', '02F', '03M', '04F', '05M', '06F',
+speaker_ids = ['01M', '02F', '03M', '04F', '05M', '06F',
     '07M', '08F', '09M', '10F', '11M', '12F',
     '13M', '14F', '15M', '16F', '17M', '18F',
     '19M', '20F', '21M', '22F', '23M', '24F']
-test_id = ['01M', '02F', '03M', '04F', '05M', '06F',
-    '07M', '08F', '09M', '10F', '11M', '12F',
-    '13M', '14F', '15M', '16F', '17M', '18F',
-    '19M', '20F', '21M', '22F', '23M', '24F']
+test_id = speaker_ids
+val_id = speaker_ids[1:] + speaker_ids[:1]
 
 
 num_epochs  = '100'
@@ -39,7 +38,8 @@ random_seed = 111
 gpu = '1'
 gpu_ids = ['0']
 wavlm_path = 'microsoft/wavlm-large'
-save_label = str_time#'0930_01'#'alexnet_pm_0704'
+save_label = resume_label if resume_label is not None else str_time#'0930_01'#'alexnet_pm_0704'
+log_file = os.path.join('logs', save_label + '.log')
 dataset_type = "RAVDESS" 
 '''IEMOCAP/EMODB/RAVDESS/MELD'''
  
@@ -52,7 +52,8 @@ for repeat in range(repeat_kfold):
     random_seed +=  (repeat*100)
     seed = str(random_seed)
 
-    for v_id, t_id in list(zip(val_id, test_id)):
+    for fold_idx, (v_id, t_id) in enumerate(zip(val_id, test_id), start=1):
+        print(f"\nFold {fold_idx}/{len(test_id)} | val_id={v_id} | test_id={t_id}")
 
         train_ser.sys.argv      = [
                         
@@ -69,6 +70,7 @@ for repeat in range(repeat_kfold):
                                   '--lr', lr,
                                   '--seed', seed,
                                   '--save_label', save_label,#,
+                                  '--log_file', log_file,
                                   '--pretrained',
                                   '--dataset_type', dataset_type,
                                   '--wavlm_path', wavlm_path
@@ -77,7 +79,9 @@ for repeat in range(repeat_kfold):
     
         stat = train_ser.main(parse_arguments(train_ser.sys.argv[1:]))   
         all_stat.append(stat)       
-        os.remove(save_label+'.pth')
+        old_checkpoint = save_label + '.pth'
+        if os.path.exists(old_checkpoint):
+            os.remove(old_checkpoint)
     
     # with open('allstat_iemocap_'+save_label+'_'+str(repeat)+'.pkl', "wb") as fout:
     #     pickle.dump(all_stat, fout)
@@ -125,4 +129,3 @@ print("\nAVERAGE:",
 
 print("\nAll stat records:")
 print(all_stat)
-
